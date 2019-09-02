@@ -1,6 +1,6 @@
 import pygame
 
-pygame.window.drawmode()
 
 
-def draw_PD(args):
+def draw_pd():
+    pass
