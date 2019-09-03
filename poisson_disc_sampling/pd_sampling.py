@@ -28,14 +28,14 @@ def generate_poisson_sampling(num_points, radius, width, height,
     return points
 
 
-def generate_math(N, radius, width, height, k=30):
+def generate_math(n, radius, width, height, k=30):
     side_length = radius / math.sqrt(2)
     n_w = int(math.ceil(width / side_length))
     n_h = int(math.ceil(height / side_length))
     points = []
     generators = []
     grid = []
-    for i in range(n_w): # grid[x][y]
+    for i in range(n_w):  # grid[x][y]
         grid.append([-1] * n_h)
 
     twopi = math.pi * 2 # sticking this here because we reference it a lot but don't want to multiply by 2 a bunch
@@ -44,54 +44,60 @@ def generate_math(N, radius, width, height, k=30):
     new_pt = (random.random()*width, random.random()*height)
     points.append(new_pt)
     generators.append(new_pt)
-    i = int(new_pt[0] // n_w)
-    j = int(new_pt[1] // n_h)
+    i = int(new_pt[0] // side_length)
+    j = int(new_pt[1] // side_length)
     grid[i][j] = 0
-    num_pt = 0
+    num_pt = 1
 
     # step 2 through 2N-1: try to make new points
-    while num_pt < N:
-        center = random.choice(generators)
-        attempts_remaining = k
-        while attempts_remaining > 0:
-            # generate a random point in the annulus around the center, and compute its cell indices
-            d = (random.random() + 1) * radius
-            theta = random.random() * twopi
-            new_pt = (center[0] + d * math.cos(theta), center[1] + d * math.sin(theta))
-            # check to see if the pt is inside the area
-            if not 0 <= new_pt[0] < width and 0 <= new_pt[1] < height:
-                # if its outside, immediately fail the point
-                attempts_remaining -= 1
-            else:
-                # find the cell the point is in and the indices for nearby cells
-                pt_cell = (int(new_pt[0] // n_w), int(new_pt[1] // n_w))
-                left = max(0, pt_cell[0] - 2)
-                right = min(n_w, pt_cell[0] + 2)
-                up = max(0, pt_cell[1] - 2)
-                down = min(n_h, pt_cell[1] + 2)
-
-                # iterate through nearby cells which are filled and check if any of them are too close
-                filled_cells = [grid[i][j] for i in range(left, right) for j in range(up, down) if grid[i][j] > -1]
-                success = True
-                for cell in filled_cells:
-                    pt = points[cell]  # grab the point coordinates from the list of points
-                    if (pt[0] - new_pt[0])**2 + (pt[1] - new_pt[1])**2 < radius*radius:  # check square distance
-                        success = False
-                if success:  # pt is far from every pt in the nearby cells
-                    grid[pt_cell[0]][pt_cell[1]] = num_pt
-                    num_pt += 1
-                    points.append(new_pt)
-                    generators.append(new_pt)
-                    break  # successful pt, don't continue generating the rest of the k-many pts
-                else:
-                    attempts_remaining -= 1  # we failed to create a point that was far enough, so we burn one attempt
-
-        if attempts_remaining == 0:   # if we used all k-many attempts and failed every one
-            generators.remove(center)  # remove the center if we tried and failed to place a point k times in a row
-
+    for x in range(2*n-1):
+        if len(generators) <= 0:
+            break
+        else:
+            center = random.choice(generators)
+            attempts_remaining = k
+            while attempts_remaining > 0:
+                # generate a random point in the annulus around the center, and compute its cell indices
+                d = (random.random() + 1) * radius
+                theta = random.random() * twopi
+                new_pt = (center[0] + d * math.cos(theta), center[1] + d * math.sin(theta))
+                # check to see if the new_pt is inside the area
+                if 0 <= new_pt[0] < width and 0 <= new_pt[1] < height:
+                    # find the cell that new_pt is in and the indices for nearby cells
+                    pt_cell = (int(new_pt[0] // side_length), int(new_pt[1] // side_length))
+                    grid_val = grid[pt_cell[0]][pt_cell[1]]
+                    if grid_val < 0:
+                        left = max(0, pt_cell[0] - 2)
+                        right = min(n_w, pt_cell[0] + 2)
+                        up = max(0, pt_cell[1] - 2)
+                        down = min(n_h, pt_cell[1] + 2)
+                        # iterate through nearby cells which are filled and check if any of them are too close
+                        filled_cells = [cval for cell in grid[left:(right+1)]
+                                        for cval in cell[up:(down+1)] if cval >= 0]
+                        success = True
+                        for num in filled_cells:
+                            pt = points[num]  # grab the point coordinates from the list of points
+                            if ((pt[0] - new_pt[0])**2 + (pt[1] - new_pt[1])**2) < (radius*radius):
+                                success = False
+                        if success:  # new_pt is far from every pt in the nearby cells
+                            grid[pt_cell[0]][pt_cell[1]] = num_pt
+                            num_pt += 1
+                            points.append(new_pt)
+                            generators.append(new_pt)
+                            break  # successful new_pt, don't continue generating the rest of the k-many pts
+                        else:
+                            attempts_remaining -= 1  # we failed to create a new_point that was far enough,
+                    else:
+                        attempts_remaining -= 1
+                else:  # if its outside, immediately fail the point
+                    attempts_remaining -= 1
+            if attempts_remaining == 0:   # if we used all k-many attempts and failed every one
+                generators.remove(center)  # remove the center if we tried and failed to place a point k times in a row
+            if len(points) >= n:
+                break
     return points
 
 
-def generate_np(N, r, width, height, k=30):
+def generate_np(n, r, width, height, k=30):
     points =[]
     return points
