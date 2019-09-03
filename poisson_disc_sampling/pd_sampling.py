@@ -5,18 +5,22 @@ import random
 #     import pygame
 # except ImportError:
 #     # Don't have the visualization stuff, so we can just run the creation but not visuals
+#     VIZ_LOAD = False
 #     raise ImportWarning("Could not load package: pygame, so no visualization options available.")
 # else:
-#     from visualize import draw_pd
+#     VIZ_LOAD = True
+#     from .poisson_viz import PoissonDist
+#
+# try:
+#     import numpy as np
+# except ImportError:
+#     # Don't have numpy, so we can't use numpy arrays
+#     NP_LOAD = False
+#     raise ImportWarning("Could not load package: numpy, using base data structures.")
+# else:
+#     NP_LOAD = True
 
-try:
-    import numpy as np
-except ImportError:
-    # Don't have numpy, so we can't use numpy arrays
-    NP_LOAD = False
-    raise ImportWarning("Could not load package: numpy, using base data structures.")
-else:
-    NP_LOAD = True
+NP_LOAD = False  # forcing basic math algorithm first to make sure it works
 
 
 def generate_poisson_sampling(num_points, radius, width, height,
